@@ -8,7 +8,7 @@ exports.addTransaction = async (req, res) => {
     const savedTransaction = await newTransaction.save();
     const newJobCard = new JobCard();
     const savedJobCard = await newJobCard.save();
-    res.status(201).json({ savedTransaction, savedJobCard });
+    res.status(201).json(savedTransaction);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
