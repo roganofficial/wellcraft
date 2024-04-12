@@ -3,11 +3,15 @@ const { Transaction, Invoice, JobCard } = require("../models/invoice");
 
 exports.addTransaction = async (req, res) => {
   try {
-    const newTransaction = new Transaction(req.body);
-
-    const savedTransaction = await newTransaction.save();
     const newJobCard = new JobCard();
     const savedJobCard = await newJobCard.save();
+    const newTransaction = new Transaction({
+      ...req.body,
+      jobCards: [savedJobCard._id],
+    });
+
+    const savedTransaction = await newTransaction.save();
+
     res.status(201).json(savedTransaction);
   } catch (err) {
     res.status(500).json({ message: err.message });
