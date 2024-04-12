@@ -53,14 +53,14 @@ const masterSchema = new mongoose.Schema({
     {
       name: String,
       phone: String,
-      _id: mongoose.Schema.Types.ObjectId,
+      _id: String,
     },
   ],
   contractorInfo: [
     {
       name: String,
       phone: String,
-      _id: mongoose.Schema.Types.ObjectId,
+      _id: String,
     },
   ],
   materials: { type: [String] },
