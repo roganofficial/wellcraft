@@ -1,7 +1,8 @@
 // app.js
 const express = require("express");
 const mongoose = require("mongoose");
-const dbConnectionString = "mongodb://localhost:27017/wellcraft"; // Replace with your actual connection string
+require("dotenv").config();
+const dbConnectionString = process.env.DB_URL; // Replace with your actual connection string
 const app = express();
 const port = 3000; // Or your desired port
 const invoicesRoutes = require("./routes/invoiceRoutes");
@@ -33,7 +34,7 @@ mongoose
   .catch((err) => console.error("Error connecting to MongoDB", err));
 
 require("./models/invoice");
-
+console.log(dbConnectionString);
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
