@@ -71,7 +71,12 @@ exports.addInvoice = async (req, res) => {
     if (existingInvoice) {
       const updatedInvoice = await Invoice.findByIdAndUpdate(
         existingInvoice._id,
-        req.body,
+        {
+          ...req.body,
+          status: "closed",
+          closedOn: Date.now(),
+          invoiceId: existingInvoice._id,
+        },
         { new: true }
       );
       if (
