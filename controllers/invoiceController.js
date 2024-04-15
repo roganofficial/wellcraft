@@ -59,6 +59,7 @@ exports.getTransactionById = async (req, res) => {
 
 exports.addInvoice = async (req, res) => {
   try {
+    const jobCardId = req.query.jobCardId;
     const transactionId = req.query.transactionId;
     const transaction = await Transaction.findById(transactionId).populate(
       "jobCards"
@@ -66,36 +67,103 @@ exports.addInvoice = async (req, res) => {
     if (!transaction) {
       return res.status(404).json({ message: "Transaction not found" });
     }
-    const openJobCardId = transaction.jobCards.find(
-      (jobCard) => jobCard.status === "unpaid"
-    )._id;
-
-    const invoice = new Invoice({ ...req.body, jobCardId: openJobCardId });
-    const savedInvoice = await invoice.save();
-    const updatedJobCard = await JobCard.findByIdAndUpdate(
-      openJobCardId,
-      {
-        status: "closed",
-        closedOn: Date.now(),
-        invoiceId: savedInvoice._id,
-      },
-      {
-        new: true,
+    const existingInvoice = await Invoice.findOne({ jobCardId: jobCardId });
+    if (existingInvoice) {
+      const updatedInvoice = await Invoice.findByIdAndUpdate(
+        existingInvoice._id,
+        req.body,
+        { new: true }
+      );
+      if (
+        transaction.jobCards.filter((jobCard) => jobCard.status === "unpaid")
+          .length === 0
+      ) {
+        const newJobCard = new JobCard();
+        await newJobCard.save();
+        const updatedNewTransaction = await Transaction.findByIdAndUpdate(
+          transactionId,
+          {
+            jobCards: [...transaction.jobCards, newJobCard._id],
+          },
+          { new: true }
+        );
       }
-    );
+      return res.json(updatedInvoice);
+    } else {
+      const invoice = new Invoice({
+        ...req.body,
+        jobCardId,
+      }); // Assuming first job card as a temporary logic
+      await invoice.save();
 
-    const newJobCard = new JobCard();
-    await newJobCard.save();
+      const updatedTransaction = await Transaction.findByIdAndUpdate(
+        transactionId,
+        {
+          invoiceId: invoice._id,
+        },
+        { new: true }
+      ).populate("jobCards");
 
-    const updatedTransaction = await Transaction.findByIdAndUpdate(
-      transactionId,
-      {
-        invoiceId: savedInvoice._id,
-        jobCards: [...transaction.jobCards, newJobCard._id],
-      },
+      const updatedJobCard = await JobCard.findByIdAndUpdate(
+        jobCardId,
+        {
+          status: "closed",
+          closedOn: Date.now(),
+          invoiceId: invoice._id,
+        },
+        { new: true }
+      );
+
+      console.log(
+        updatedTransaction.jobCards.filter(
+          (jobCard) => jobCard.status === "unpaid"
+        ).length
+      );
+
+      if (
+        updatedTransaction.jobCards.filter(
+          (jobCard) => jobCard.status === "unpaid"
+        ).length === 0
+      ) {
+        const newJobCard = new JobCard();
+        await newJobCard.save();
+        const updatedNewTransaction = await Transaction.findByIdAndUpdate(
+          transactionId,
+          {
+            jobCards: [...transaction.jobCards, newJobCard._id],
+          },
+          { new: true }
+        );
+      }
+
+      return res.json(updatedTransaction);
+    }
+  } catch (err) {}
+};
+
+exports.fetchInvoice = async (req, res) => {
+  try {
+    const jobCardId = req.query.jobCardId;
+    const invoice = await Invoice.find({ jobCardId });
+    if (!invoice) {
+      return res.status(404).json({ message: "Invoice not found" });
+    }
+    res.json(invoice);
+  } catch (err) {}
+};
+
+exports.updatePayment = async (req, res) => {
+  try {
+    const invoiceId = req.query.invoiceId;
+    const updatedInvoice = await Invoice.findByIdAndUpdate(
+      invoiceId,
+      req.body,
       { new: true }
     );
 
-    res.json(updatedTransaction);
+    if (!updatedInvoice) {
+      return res.status(404).json({ message: "Invoice not found" });
+    }
+    return res.json(updatedInvoice);
   } catch (err) {}
 };

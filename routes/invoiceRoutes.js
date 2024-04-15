@@ -6,6 +6,8 @@ const {
   getTransactionById,
   getAllTransactions,
   addInvoice,
+  fetchInvoice,
+  updatePayment,
 } = require("../controllers/invoiceController");
 bodyParser = require("body-parser").json();
 
@@ -15,5 +17,7 @@ router.get("/", getAllTransactions);
 router.get("/one", getTransactionById);
 
 router.post("/invoice/new", bodyParser, addInvoice);
+router.get("/invoice", fetchInvoice);
+router.put("/invoice/payment", bodyParser, updatePayment);
 
 module.exports = router;

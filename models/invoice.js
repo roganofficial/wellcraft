@@ -74,12 +74,13 @@ const masterSchema = new mongoose.Schema({
 const invoiceSchema = new mongoose.Schema(
   {
     costType: String,
-    unitPrice: Number,
+    unitPrice: { type: [Number] },
     status: { type: String, default: "unpaid" },
     jobCardId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "JobCard",
     },
+    paymentAmount: { type: Number, default: 0 },
   },
   {
     timestamps: true,
