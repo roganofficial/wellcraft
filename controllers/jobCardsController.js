@@ -81,11 +81,10 @@ exports.getAllJobCards = async (req, res) => {
     const transaction = await Transaction.findById(transactionId).populate(
       "jobCards"
     );
-    const jobCard = transaction.jobCards.find(
-      (jobCard) => jobCard.status === "unpaid"
-    );
-    const jobCardEntries = jobCard.jobCardEntries;
-    res.json(jobCardEntries);
+    // const jobCard = transaction.jobCards.find(
+    //   (jobCard) => jobCard.status === "unpaid"
+    // );
+    res.json(transaction.jobCards);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
