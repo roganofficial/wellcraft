@@ -82,6 +82,12 @@ const invoiceSchema = new mongoose.Schema(
       ref: "JobCard",
     },
     paymentAmount: { type: Number, default: 0 },
+    otherCharges: [
+      {
+        field: String,
+        value: Number,
+      },
+    ],
   },
   {
     timestamps: true,

@@ -69,6 +69,7 @@ exports.addInvoice = async (req, res) => {
     }
     const existingInvoice = await Invoice.findOne({ jobCardId: jobCardId });
     if (existingInvoice) {
+      console.log("existing", req.body);
       const updatedInvoice = await Invoice.findByIdAndUpdate(
         existingInvoice._id,
         {
