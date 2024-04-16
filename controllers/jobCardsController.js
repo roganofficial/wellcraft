@@ -18,7 +18,10 @@ exports.addJobCard = async (req, res) => {
   try {
     // Process the image upload
 
-    await upload.single("image")(req, res, async (err) => {
+    await upload.fields([
+      { name: "image", maxCount: 1 },
+      { name: "refImage", maxCount: 1 },
+    ])(req, res, async (err) => {
       if (err) {
         return res.status(400).json({ message: err.message });
       }
@@ -36,7 +39,15 @@ exports.addJobCard = async (req, res) => {
         const updateBody = {
           jobCardEntries: [
             ...unpaidJobCard.jobCardEntries,
-            { ...req.body, image: req.file ? req.file.path : undefined },
+            {
+              ...req.body,
+              image: req.files["image"]
+                ? req.files["image"][0].path
+                : undefined,
+              refImage: req.files["refImage"]
+                ? req.files["refImage"][0].path
+                : undefined,
+            },
           ],
         };
         console.log(updateBody);
@@ -54,7 +65,12 @@ exports.addJobCard = async (req, res) => {
           jobCardEntries: [
             {
               ...req.body, // Spread the properties from req.body
-              image: req.file ? req.file.path : undefined, // Conditional image
+              image: req.files["image"]
+                ? req.files["image"][0].path
+                : undefined, // Path for the first image
+              refImage: req.files["refImage"]
+                ? req.files["refImage"][0].path
+                : undefined, // Path for the second image
             },
           ],
         });
@@ -71,6 +87,7 @@ exports.addJobCard = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
+    console.log(err);
   }
 };
 
@@ -154,5 +171,22 @@ exports.getJobCardById = async (req, res) => {
       return res.status(404).json({ message: "Job Card not found" });
     }
     res.json(jobCard);
+  } catch (err) {}
+};
+
+exports.addEmptyJobCard = async (req, res) => {
+  try {
+    const transactionId = req.query.transactionId;
+    const jobCard = new JobCard();
+    const savedJobCard = await jobCard.save();
+    if (!savedJobCard) {
+      return res.status(404).json({ message: "Job Card not saved" });
+    }
+    const updatedTransaction = await Transaction.findByIdAndUpdate(
+      transactionId,
+      { $push: { jobCards: savedJobCard._id } },
+      { new: true }
+    );
+    res.json(updatedTransaction);
   } catch (err) {}
 };

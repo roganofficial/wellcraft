@@ -13,6 +13,7 @@ const jobCardSchema = new mongoose.Schema(
         machineNumber: { type: String, default: "CNC1" },
         timeOfWork: Number,
         image: String,
+        refImage: String,
         remark: String,
       },
     ],
